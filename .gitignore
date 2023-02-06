@@ -2,6 +2,7 @@
 .vscode
 .ipynb_checkpoints
 __pycache__
+/.venv/
 files/*
 *.csv
 *.xlsx

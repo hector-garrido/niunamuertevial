@@ -17,6 +17,18 @@ python main.py
 
 Nota: En promedio, el programa tarda 1.5 seg por registro, con una complejidad lineal.
 
+### Uso sin conda
+
+Es posible ejecutar este proyecto en cualquier entorno con python instalando los
+requisitos listados en `requirements.txt`. Una opción es la siguiente:
+
+```shell-session
+$ python -m venv .venv
+$ source .venv/bin/activate
+(.venv) $ pip install -r requirements.txt
+(.venv) $ python main.py
+```
+
 ## Lógica general del programa
 
 1. Lee el insumo (archivo excel con lista de sitios de noticias).
