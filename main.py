@@ -92,7 +92,7 @@ for i in df[df.elsol_dummy].index:
         gtm = soup.find_all("script")
         for x in gtm:
             if 'dataLayer.push({"tags"' in x.text:
-                gtm_tags = re.search("\$\[.*\]", x.text).group()
+                gtm_tags = re.search("$[.*]", x.text).group()
                 gtm_tags = gtm_tags[2:-1]
                 break
         df.loc[i, "tags"] = gtm_tags
