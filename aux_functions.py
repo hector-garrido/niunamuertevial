@@ -1,6 +1,5 @@
 import numpy as np
 import requests
-import lxml.html as html
 from bs4 import BeautifulSoup
 
 

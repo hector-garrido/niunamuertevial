@@ -1,7 +1,3 @@
-import os
-from bs4 import BeautifulSoup
-import requests
-import lxml.html as html
 import pandas as pd
 import re
 import numpy as np
