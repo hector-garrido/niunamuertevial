@@ -7,3 +7,5 @@ files/*
 *.csv
 *.xlsx
 .env
+test_files
+numv_sandbox_personal.ipynb
