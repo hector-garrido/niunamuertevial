@@ -1,6 +1,7 @@
 # Automatiza la búsqueda de resultados
-from typing import List
+from typing import List, Optional
 from time import sleep
+from dataclasses import dataclass
 import sys
 import os
 
@@ -11,7 +12,14 @@ class SearchError(Exception):
     pass
 
 
-def search_query(query: str, token: str) -> List[str]:
+@dataclass
+class SearchResult:
+    url: str
+    date: Optional[str]
+    keywords: List[str]
+
+
+def search_query(query: str, token: str) -> List[SearchResult]:
     try:
         return _search_query(query, token)
     except requests.HTTPError:
@@ -47,7 +55,7 @@ def _search_query(query: str, token: str) -> List[str]:
         if res.json()['data']['status'] == 'SUCCEEDED':
             break
     else:
-        raise SearchError('Actor run didnt complete after 5 tries')
+        raise SearchError("Actor run didn't complete after 5 tries")
 
     res = requests.get(
         f"https://api.apify.com/v2/datasets/{dataset_id}/items",
@@ -55,7 +63,14 @@ def _search_query(query: str, token: str) -> List[str]:
     )
     res.raise_for_status()
 
-    return res.json()[0]
+    return list(map(
+        lambda r: SearchResult(
+            r['url'],
+            r.get('date'),
+            r['emphasizedKeywords'],
+        ),
+        res.json()[0]['organicResults']
+    ))
 
 
 if __name__ == '__main__':
@@ -65,7 +80,7 @@ if __name__ == '__main__':
         print("Por favor establece la variable de entorno APIFY_TOKEN y ejecuta de nuevo el comando")
         exit(1)
 
-    json = search_query(sys.argv[1], token)
+    results = search_query(sys.argv[1], token)
 
     from pprint import pprint
-    pprint(json)
+    pprint(results)
