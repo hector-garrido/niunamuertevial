@@ -48,7 +48,8 @@ def _search_query(query: str, token: str) -> List[str]:
     dataset_id = run['defaultDatasetId']
 
     # query for the state of the dataset and wait until it is finished
-    for i in range(10):
+    N_TRIES = 10
+    for i in range(N_TRIES):
         sleep(2)
         res = requests.get(
             f"https://api.apify.com/v2/actor-runs/{run_id}",
@@ -58,7 +59,7 @@ def _search_query(query: str, token: str) -> List[str]:
         if res.json()['data']['status'] == 'SUCCEEDED':
             break
     else:
-        raise SearchError("Actor run didn't complete after 5 tries")
+        raise SearchError(f"Actor run didn't complete after {N_TRIES} tries")
 
     res = requests.get(
         f"https://api.apify.com/v2/datasets/{dataset_id}/items",
