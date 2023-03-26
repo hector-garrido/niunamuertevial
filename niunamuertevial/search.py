@@ -84,7 +84,14 @@ if __name__ == '__main__':
         print("Por favor establece la variable de entorno APIFY_TOKEN y ejecuta de nuevo el comando")
         exit(1)
 
-    results = search_query(sys.argv[1], token)
+    try:
+        query = sys.argv[1]
+        print(f'Using provided query: {query}')
+    except IndexError:
+        query = '(atropella OR atropellada OR atropellados OR atropelladas OR atropellado OR arrollado OR arrollada OR arrolla OR embiste) AND (muerte OR muerto OR muerta OR muere OR murió OR fallecido OR fallecida OR fallece OR falleció OR perece OR pereció OR cuerpo OR cadáver OR fatal OR mortal OR mata) -site:sv -site:es -site:cl -site:pe -site:ar -site:co -site:hn'
+        print(f'Using default query: {query}')
+
+    results = search_query(query, token)
 
     from pprint import pprint
     pprint(results)
