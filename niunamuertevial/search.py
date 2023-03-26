@@ -30,8 +30,11 @@ def _search_query(query: str, token: str) -> List[str]:
     ''' Dada una consulta devuelve una lista con URLS obtenidas a partir de la
     búsqueda en google con los resultados. '''
     # create a task that will search the results
+    # to tune this request see: https://apify.com/apify/google-search-scraper/input-schema#resultsPerPage
     query_payload = {
         "queries": query,
+        "resultsPerPage": 100,
+        "countryCode": "mx",
     }
     res = requests.post(
         f"https://api.apify.com/v2/acts/apify~google-search-scraper/runs",
