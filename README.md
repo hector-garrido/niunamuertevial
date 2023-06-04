@@ -6,14 +6,15 @@ Repositorio ideado para apoyar al proyecto ni una muerte vial en la recolección
 
 ## Instrucciones de uso
 
-1. Ubicar insumo (archivo excel con lista de sitios de noticias) dentro del repositorio.
+1. Ubicar insumo (archivo excel con lista de sitios de noticias) dentro del repositorio, o en su defecto, establecer el token de Apify como variable de entorno.
 2. Ejecutar los siguientes comandos en la terminal (se requiere conda):
 ```
 conda env create -f environment.yml
 conda activate niunamuertevial
 python main.py
 ```
-3. Se generará un archivo adicional con los datos añadidos.
+3. Seguir los pasos indicados en la terminal.
+4. Se generará un archivo adicional con los datos añadidos.
 
 Nota: En promedio, el programa tarda 1.5 seg por registro, con una complejidad lineal.
 
@@ -31,7 +32,7 @@ $ source .venv/bin/activate
 
 ## Lógica general del programa
 
-1. Lee el insumo (archivo excel con lista de sitios de noticias).
+1. Lee el insumo (archivo excel con lista de sitios de noticias), o en su defecto, recolecta lista de urls por medio de Apify.
 2. Realiza una consulta web a cada url para obtener su estructura html.
 3. Se extrae el texto de la nota de cada html. La estructura html varía por periódico.
 4. Procesa el texto para obtener variables de interés (edad de la víctima, medio de transporte de la víctima, etc.).
