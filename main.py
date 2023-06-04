@@ -7,19 +7,59 @@ import re
 import numpy as np
 from aux_functions import get_soup, get_clean_text, get_edad
 from time import time
+from search import search_query, _search_query
 
-INPUT_FILE_PATH = "input_urls.xlsx"
 OUTPUT_FILE_PATH = "output_data.csv"
-take_sample = True
-sample_size = 500
 
 ################################################################################
 #   read and process dataset
 
 start = time()
 
-df = pd.read_excel(INPUT_FILE_PATH)
-# df = pd.read_csv(INPUT_FILE_PATH, header=1)
+token = os.getenv("APIFY_TOKEN")
+
+has_url_file = input("¿Cuentas con un archivo excel con urls? y/n: ")
+
+if has_url_file == "y":
+    input_file_path = input("Introduce el nombre del archivo excel: ")
+    df = pd.read_excel(input_file_path)
+
+elif has_url_file == "n":
+
+    print(
+        "Procediendo a realizar scraping de urls por medio de Apify (requiere token)..."
+    )
+
+    if token is None:
+        print(
+            "Por favor establece la variable de entorno APIFY_TOKEN y ejecuta de nuevo el comando"
+        )
+        exit(1)
+
+    query = "(atropella OR atropellada OR atropellados OR atropelladas OR atropellado OR arrollado OR arrollada OR arrolla OR embiste) AND (muerte OR muerto OR muerta OR muere OR murió OR fallecido OR fallecida OR fallece OR falleció OR perece OR pereció OR cuerpo OR cadáver OR fatal OR mortal OR mata) -site:sv -site:es -site:cl -site:pe -site:ar -site:co -site:hn"
+    print(f"Using query: {query}")
+    results = search_query(query, token)
+
+    df = pd.DataFrame(
+        {
+            "url": [x.url for x in results],
+            "date": [x.date for x in results],
+            "keywords": [x.keywords for x in results],
+        }
+    )
+
+    print("Scraping de urls completado.")
+
+else:
+    print("Comando desconocido. Interrumpiendo programa.")
+    exit(1)
+
+################################################################################
+
+# df = pd.read_excel(input_file_path)
+# df = pd.read_csv(input_file_path, header=1)
+
+df = df.rename(columns={"url": "URL noticia"})
 
 df["aux"] = df["URL noticia"].copy()
 df["aux"] = df["aux"].str.replace("http://", "")
@@ -35,8 +75,19 @@ df["milenio_dummy"] = df.sitio == "www.milenio.com"
 df["elsol_dummy"] = df.sitio.str.contains("elsolde", case=False)
 
 # if the url list is too big, you can take the first n rows for a test instead of the whole dataset
-if take_sample:
-    df = df.head(sample_size)
+take_sample = input("¿Quieres ocupar solo una muestra de los datos? y/n: ")
+
+if take_sample == "y":
+    sample_size = input("Indica el tamaño de la muestra: ")
+    try:
+        sample_size = int(sample_size)
+        df = df.head(sample_size)
+    except Exception as e:
+        print(e)
+        exit(1)
+elif take_sample != "n":
+    print("Comando desconocido. Interrumpiendo programa.")
+    exit(1)
 
 aux_url_split_1 = df.loc[df["URL noticia"].notnull(), "URL noticia"].str.split(" y ")
 aux_url_split_2 = [x[0] for x in aux_url_split_1]
