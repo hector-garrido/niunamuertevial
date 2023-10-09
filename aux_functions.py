@@ -8,7 +8,7 @@ def get_soup(url):
 
     try:
 
-        response = requests.get(url)
+        response = requests.get(url, headers={"User-Agent":"Mozilla/5.0"}, timeout=5)
         try:
             home = response.content.decode("utf-8")
         except:
@@ -16,8 +16,11 @@ def get_soup(url):
         soup = BeautifulSoup(home, "html.parser")
         return soup, response.status_code
 
-    except:
+    except requests.exceptions.Timeout as err:
+        print("timeout :(")
+        return 1, 1
 
+    except:
         return 1, 1
 
 
