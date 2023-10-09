@@ -12,7 +12,7 @@ from search import search_query, _search_query
 OUTPUT_FILE_PATH = "output_data.csv"
 
 ################################################################################
-#   read and process dataset
+#   get urls
 
 start = time()
 
@@ -36,7 +36,15 @@ elif has_url_file == "n":
         )
         exit(1)
 
-    query = "(atropella OR atropellada OR atropellados OR atropelladas OR atropellado OR arrollado OR arrollada OR arrolla OR embiste) AND (muerte OR muerto OR muerta OR muere OR murió OR fallecido OR fallecida OR fallece OR falleció OR perece OR pereció OR cuerpo OR cadáver OR fatal OR mortal OR mata) -site:sv -site:es -site:cl -site:pe -site:ar -site:co -site:hn"
+    has_query = input("¿Tienes una query personalizada? y/n: ")
+    if has_query == "y":
+        query = input("Introduce tu query: ")
+    elif has_query == "n":
+        query = "(atropella OR atropellada OR atropellados OR atropelladas OR atropellado OR arrollado OR arrollada OR arrolla OR embiste) AND (muerte OR muerto OR muerta OR muere OR murió OR fallecido OR fallecida OR fallece OR falleció OR perece OR pereció OR cuerpo OR cadáver OR fatal OR mortal OR mata) -site:sv -site:es -site:cl -site:pe -site:ar -site:co -site:hn"
+    else:
+        print("Comando desconocido. Interrumpiendo programa.")
+        exit(1)
+
     print(f"Using query: {query}")
     results = search_query(query, token)
 
@@ -55,6 +63,7 @@ else:
     exit(1)
 
 ################################################################################
+# process data
 
 # df = pd.read_excel(input_file_path)
 # df = pd.read_csv(input_file_path, header=1)
@@ -75,6 +84,7 @@ df["milenio_dummy"] = df.sitio == "www.milenio.com"
 df["elsol_dummy"] = df.sitio.str.contains("elsolde", case=False)
 
 # if the url list is too big, you can take the first n rows for a test instead of the whole dataset
+print(f"Tamaño: {df.shape[0]}")
 take_sample = input("¿Quieres ocupar solo una muestra de los datos? y/n: ")
 
 if take_sample == "y":
@@ -85,7 +95,9 @@ if take_sample == "y":
     except Exception as e:
         print(e)
         exit(1)
-elif take_sample != "n":
+elif take_sample == "n":
+    print("Usando muestra completa.")
+else:
     print("Comando desconocido. Interrumpiendo programa.")
     exit(1)
 
@@ -102,22 +114,22 @@ df["status_code"] = ""
 ################################################################################
 #   get text milenio
 
-k = 0
-for i in df[df.milenio_dummy].index:
-    k += 1
+for k, i in enumerate(df[df.milenio_dummy].index, start=1):
 
     url = df["url_0"][i]
     soup, status_code = get_soup(url)
 
-    # add title
-    texto = soup.find_all("title")[0].text
+    if soup != 1:
 
-    # add body
-    for x in soup.find_all("p"):
-        texto += " "
-        texto += x.text
+        # add title
+        texto = soup.find_all("title")[0].text
 
-    df.loc[i, "texto"] = texto
+        # add body
+        for x in soup.find_all("p"):
+            texto += " "
+            texto += x.text
+
+        df.loc[i, "texto"] = texto[:32700]
 
     if k % 50 == 0:
         print(f"{k} de {len(df[df.milenio_dummy].index)} completados")
@@ -127,9 +139,7 @@ print("milenio completado")
 ################################################################################
 #   get text elsol
 
-k = 0
-for i in df[df.elsol_dummy].index:
-    k += 1
+for k, i in enumerate(df[df.elsol_dummy].index, start=1):
 
     url = df["url_0"][i]
     soup, status_code = get_soup(url)
@@ -180,7 +190,7 @@ for i in df[df.elsol_dummy].index:
         except:
             1
 
-        df.loc[i, "texto"] = texto
+        df.loc[i, "texto"] = texto[:32700]
 
     except:
         1
@@ -195,9 +205,7 @@ print("elsol completado")
 ################################################################################
 #   get text for the other sites (unstructured)
 
-k = 0
-for i in df[~df.elsol_dummy & ~df.milenio_dummy].index:
-    k += 1
+for k, i in enumerate(df[~df.elsol_dummy & ~df.milenio_dummy].index, start=1):
 
     url = df["url_0"][i]
     soup, status_code = get_soup(url)
@@ -221,7 +229,7 @@ for i in df[~df.elsol_dummy & ~df.milenio_dummy].index:
             for x in aux:
                 texto += x.text
                 texto += " "
-            df.loc[i, "texto"] = texto
+            df.loc[i, "texto"] = texto[:32700]
 
         except:
             1
@@ -240,7 +248,7 @@ print("el resto completado")
 
 
 ################################################################################
-#   process to get features from the text
+#   further process to get features from the text
 
 df["tags"] = df["tags"].str.lower()
 
@@ -253,31 +261,39 @@ df.loc[df.texto_limpio.isnull(), "texto_limpio"] = ""
 df["URL noticia 0"] = df["URL noticia"].copy()
 df.loc[df["URL noticia"].isnull(), "URL noticia 0"] = ""
 
-df["edad"] = np.nan
-for i in df.index:
-    df.loc[i, "edad"] = get_edad(df.texto_lista, i)
-
 ################################################################################
 #   classification of cases by medium of transport of the victim
 
-df["modo"] = "peaton"
+wants_manual_vars = input("¿Tu query es de accidentes viales y quieres las variables manuales? y/n: ")
+if wants_manual_vars == "y":
 
-mask_bici = df.texto_limpio.str.contains("cicl[ei]", case=False, regex=True)
-df.loc[mask_bici, "modo"] = "bici"
+    df["edad"] = np.nan
+    for i in df.index:
+        df.loc[i, "edad"] = get_edad(df.texto_lista, i)
 
-mask_moto_1 = df.texto_limpio.str.contains("moto[^r]", case=False, regex=True)
-mask_moto_2 = ~df["URL noticia 0"].str.contains(
-    "por-moto|por-una-moto", case=False, regex=True
-)
-df.loc[(mask_moto_1) & (mask_moto_2), "modo"] = "moto"
+    df["modo"] = "peaton"
 
-si_moto = ["-a-moto", "motociclista-tras", "motocilcista-al"]
-for x in si_moto:
-    aux_mask_moto = df["URL noticia 0"].str.contains(x, case=False, regex=True)
-    df.loc[aux_mask_moto, "modo"] = "moto"
+    mask_bici = df.texto_limpio.str.contains("cicl[ei]", case=False, regex=True)
+    df.loc[mask_bici, "modo"] = "bici"
 
-mask_nothing = df.texto_limpio == ""
-df.loc[mask_nothing, "modo"] = ""
+    mask_moto_1 = df.texto_limpio.str.contains("moto[^r]", case=False, regex=True)
+    mask_moto_2 = ~df["URL noticia 0"].str.contains(
+        "por-moto|por-una-moto", case=False, regex=True
+    )
+    df.loc[(mask_moto_1) & (mask_moto_2), "modo"] = "moto"
+
+    si_moto = ["-a-moto", "motociclista-tras", "motocilcista-al"]
+    for x in si_moto:
+        aux_mask_moto = df["URL noticia 0"].str.contains(x, case=False, regex=True)
+        df.loc[aux_mask_moto, "modo"] = "moto"
+
+    mask_nothing = df.texto_limpio == ""
+    df.loc[mask_nothing, "modo"] = ""
+
+elif wants_manual_vars != "n":
+
+    print("Comando desconocido. Interrumpiendo programa.")
+    exit(1)
 
 ################################################################################
 #   export output to file
@@ -286,6 +302,14 @@ df.milenio_dummy *= 1
 df.elsol_dummy *= 1
 
 df = df.drop(columns=["aux", "url_0", "texto_limpio", "URL noticia 0", "texto_lista"])
+
+print(df.head()['texto'])
+custom_output_name = input("¿Deseas poner un nombre específico al archivo de salida? y/n: ")
+if custom_output_name == "y":
+    OUTPUT_FILE_PATH = input("Introduce nombre de archivo de salida: ")
+elif custom_output_name != "n":
+    print("Comando desconocido. Interrumpiendo programa.")
+    exit(1)
 
 try:
     df.to_csv(OUTPUT_FILE_PATH, index=False)
