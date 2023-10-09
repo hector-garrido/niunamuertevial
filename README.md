@@ -28,7 +28,15 @@ python main.py
 3. Seguir los pasos indicados en la terminal.
 4. Se generará un archivo adicional con los datos añadidos.
 
-Nota: En promedio, el programa tarda 1.5 seg por registro, con una complejidad lineal.
+Para ocupar las funciones de LLMs de OpenAI, se requiere generar un entorno con openai y pandas.
+Asumiendo que se tiene dicho entorno y se llama openai:
+5. Ejecutar los siguientes comandos en la terminal (se requiere conda):
+```
+conda activate openai
+python llm_feature_extraction.py
+```
+6. Seguir los pasos indicados en la terminal.
+7. Se generará un archivo adicional con los datos añadidos.
 
 ### Uso sin conda
 
@@ -41,6 +49,10 @@ $ source .venv/bin/activate
 (.venv) $ pip install -r requirements.txt
 (.venv) $ python main.py
 ```
+
+### Nota
+
+Para usar las APIs de Apify y OpenAI se requiere registrarse y generar sus accesos, que deberán conservar de manera privada. En algún punto posterior dichos servicios pueden pedir registrar métodos de pago.
 
 ---------------------------------------------------------------------------------------------------------------------
 
