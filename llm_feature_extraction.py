@@ -14,28 +14,8 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 ################################################################################
 # def funcitions
-
+    
 def output_to_dict(output):
-
-    output = output.split('\n')
-    output = [x for x in output if x!='']
-    
-    if len(output)>0:
-    
-        dict_keys = []
-        dict_values = []
-        for x in output:
-            
-            if len(x.split(': '))==2:
-                a, b = x.split(': ')
-                dict_keys.append(a)
-                dict_values.append(b)
-            
-        out_dict = dict(zip(dict_keys,dict_values))
-        
-        return out_dict
-    
-def output_to_dict_1(output):
     output = output.split("```")[1]
     output = output.replace('\n','').replace('json','')
     output = json.loads(
@@ -61,7 +41,6 @@ OUTPUT_FILE_PATH = 'llm_' + INPUT_FILE_PATH
 # prepare prompt
 
 vars_prompt = "fecha del evento, nombre de la víctima, género de la víctima, edad de la víctima, nombre del victimario, edad del victimario, género del victimario, transporte del victimario, medio de transporte de la víctima, si la víctima salió volando,  si la víctima tomó alcohol, si el victimario tomó alcohol, ubicación del accidente, municipio del accidente, localidad del accidente, en cuántos días murió la víctima, cómo murió la víctima y si el victimario fue detenido"
-# vars_prompt = "fecha del evento, ubicación del evento, municipio, estado, dirección del evento, identidad del victimario, si hubo muertos, si hubo homicidios, tipo de crimen y tipo de objeto o bien robado"
 # vars_prompt = "fecha del evento, edad de la víctima, transporte del victimario, transporte de la víctima y ubicación del accidente"
 custom_prompt = input("¿Cuentas con una lista de variables personalizada? y/n: ")
 if custom_prompt == "y":
@@ -114,32 +93,12 @@ for i in df[
 
     try:
         # make the request to the OpenAI API
-        # response = openai.ChatCompletion.create(
         response = openai.chat.completions.create(
           model=MODEL,
           messages=[{'role':'user','content':prompt}]
-        #   prompt=prompt,
-        #   max_tokens=16000,
-        #   max_tokens=1900,
-        #   n=1,
-        #   stop=None,
-        #   temperature=0,
         )
-        # response = openai.chat.completions.create(
-        #   engine=model,
-        #   prompt=prompt,
-        #   max_tokens=16000,
-        # #   max_tokens=1900,
-        #   n=1,
-        #   stop=None,
-        #   temperature=0,
-        # )
-        # print(response)
-        # print(dir(response))
         output = response.choices[0].message.content
         print(df['URL noticia'][i])
-        # print(df['texto'][i])
-        # print(output)
 
     except Exception as error:
         print('Caught this error: ' + repr(error))
@@ -147,13 +106,8 @@ for i in df[
     
     df.loc[i, 'llm_output'] = output
     
-    # out_dict = output_to_dict(output)    
-    # if out_dict!=None:    
-    #     for key, value in out_dict.items():
-    #         if key in df.columns:
-    #             df.loc[i, key] = value
     try:
-        out_dict = output_to_dict_1(output)
+        out_dict = output_to_dict(output)
         out_list = list(out_dict.values())    
         for j in range(len(out_list)):
             df.iloc[i, -(1+j)] = out_list[-(1+j)]
