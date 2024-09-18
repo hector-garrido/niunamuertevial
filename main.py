@@ -10,6 +10,7 @@ from time import time
 from search import search_query, _search_query
 
 OUTPUT_FILE_PATH = "output_data.csv"
+EXCEL_CHAR_LIMIT = 32700
 
 ################################################################################
 #   get urls
@@ -40,7 +41,12 @@ elif has_url_file == "n":
     if has_query == "y":
         query = input("Introduce tu query: ")
     elif has_query == "n":
-        query = "(atropella OR atropellada OR atropellados OR atropelladas OR atropellado OR arrollado OR arrollada OR arrolla OR embiste) AND (muerte OR muerto OR muerta OR muere OR murió OR fallecido OR fallecida OR fallece OR falleció OR perece OR pereció OR cuerpo OR cadáver OR fatal OR mortal OR mata) -site:sv -site:es -site:cl -site:pe -site:ar -site:co -site:hn"
+        # ignore urls to pdfs sicne their extraction yields weird stuff
+        query = "(atropella OR atropellada OR atropellados OR atropelladas OR atropellado OR arrollado OR arrollada OR arrolla OR embiste) AND \
+            (muerte OR muerto OR muerta OR muere OR murió OR fallecido OR fallecida OR fallece OR falleció OR perece OR pereció OR cuerpo OR cadáver OR fatal OR mortal OR mata) \
+            -site:sv -site:es -site:cl -site:pe -site:ar -site:co -site:hn \
+            -filetype:pdf "#\
+            # after:2024-08-25 before:2024-08-26"
     else:
         print("Comando desconocido. Interrumpiendo programa.")
         exit(1)
@@ -64,9 +70,6 @@ else:
 
 ################################################################################
 # process data
-
-# df = pd.read_excel(input_file_path)
-# df = pd.read_csv(input_file_path, header=1)
 
 df = df.rename(columns={"url": "URL noticia"})
 
@@ -129,7 +132,10 @@ for k, i in enumerate(df[df.milenio_dummy].index, start=1):
             texto += " "
             texto += x.text
 
-        df.loc[i, "texto"] = texto[:32700]
+        df.loc[i, "texto"] = texto[:EXCEL_CHAR_LIMIT]
+
+    else:
+        1
 
     if k % 50 == 0:
         print(f"{k} de {len(df[df.milenio_dummy].index)} completados")
@@ -190,7 +196,7 @@ for k, i in enumerate(df[df.elsol_dummy].index, start=1):
         except:
             1
 
-        df.loc[i, "texto"] = texto[:32700]
+        df.loc[i, "texto"] = texto[:EXCEL_CHAR_LIMIT]
 
     except:
         1
@@ -229,7 +235,7 @@ for k, i in enumerate(df[~df.elsol_dummy & ~df.milenio_dummy].index, start=1):
             for x in aux:
                 texto += x.text
                 texto += " "
-            df.loc[i, "texto"] = texto[:32700]
+            df.loc[i, "texto"] = texto[:EXCEL_CHAR_LIMIT]
 
         except:
             1
