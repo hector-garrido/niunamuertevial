@@ -11,7 +11,7 @@ Repositorio ideado para apoyar al proyecto ni una muerte vial en la recolección
 1. Lee el insumo (archivo excel con lista de sitios de noticias), o en su defecto, recolecta lista de urls por medio de una query en Apify.
 2. Realiza una consulta web a cada url para obtener su estructura html.
 3. Se extrae el texto de la nota de cada html. La estructura html varía por periódico.
-4. Procesa el texto para obtener variables de interés (edad de la víctima, medio de transporte de la víctima, etc.), ya sea a través de diversas reglas y ML, o bien, utilizando de manera auxiliar LLMs de OpenAI (GPT-3).
+4. Procesa el texto para obtener variables de interés (edad de la víctima, medio de transporte de la víctima, etc.), ya sea utilizando LLMs de OpenAI (ChatGPT), o bien, a través de diversas reglas y ML.
 5. Exporta el resultado a un archivo csv.
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -52,13 +52,4 @@ $ source .venv/bin/activate
 
 ### Nota
 
-Para usar las APIs de Apify y OpenAI se requiere registrarse y generar sus accesos, que deberán conservar de manera privada. En algún punto posterior dichos servicios pueden pedir registrar métodos de pago.
-
----------------------------------------------------------------------------------------------------------------------
-
-## Próximos pasos
-
-- Añadir más sitios de noticias para ampliar alcance.
-- Refinar reglas de decisión para determinar medio de transporte de la víctima.
-- Aligerar carga de environment.yml quitando paquetes innecesarios.
-- Refactorizar script main.py.
+Para usar las APIs de Apify y OpenAI se requiere registrarse y generar sus accesos, que deberán conservar de manera privada. En algún punto dichos servicios pueden pedir registrar métodos de pago.
